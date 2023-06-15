@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout 60000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mocha": "^10.2.0"
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "chromedriver": "^114.0.2",
+    "mocha": "^10.2.0",
+    "selenium-webdriver": "^4.10.0"
   }
 }
