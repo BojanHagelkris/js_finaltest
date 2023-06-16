@@ -34,8 +34,8 @@ module.exports = class HomePage {
         return this.#driver.findElement(By.tagName('h2')).getText();
     }
 
-    getPackageDiv() {
-        const xpathPackage = `//h3[contains(text(), "Double burger")]//ancestor::div[contains(@class, "panel")]`;
+    getPackageDiv(title) {
+        const xpathPackage = `//h3[contains(text(), "${title}")]//ancestor::div[contains(@class, "panel")]`;
         return this.#driver.findElement(By.xpath(xpathPackage));
     }
 
@@ -55,13 +55,23 @@ module.exports = class HomePage {
         return packageDiv.findElement(By.name('quantity'));
     }
 
-    returnQuanityInput() {
-        // this.getQuanitiyInput().click();
-        // this.getQuanitiyInput().sendKeys(Key.BACK_SPACE, '2', );
+    async insertQuantityInput() {
+        const quantityInput = await this.#driver.findElement(By.xpath('(//input[contains(@name, "quantity")])[2]'));
+        await quantityInput.click();
+        await quantityInput.sendKeys(Key.UP,);
+    }
+    async insertQuantityInputB() {
+        const quantityInput = await this.#driver.findElement(By.xpath('(//input[contains(@name, "quantity")])[4]'));
+        await quantityInput.click();
+        await quantityInput.sendKeys(Key.UP,Key.UP,Key.UP);
     }
 
     async clickOnShoppingCartLink() {
         const linkShoppingCart = await this.#driver.findElement(By.partialLinkText('shopping cart'));
         await linkShoppingCart.click();
+    }
+
+    checkCutleryBox() {
+        this.#driver.findElement(By.xpath('(//input[@name = "cutlery"])[4]')).click();
     }
 }

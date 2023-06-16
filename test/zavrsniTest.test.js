@@ -1,13 +1,13 @@
 "use strict";
 require('chromedriver');
 const webdriver = require('selenium-webdriver');
-const {assert, expect} = require('chai');
-const {By ,Key, until} = require('selenium-webdriver');
+const { assert, expect } = require('chai');
+const { By , until } = require('selenium-webdriver');
 
 const HomePage = require('../pages/home.page');
 const RegisterPage = require('../pages/register.page');
 const LoginPage = require('../pages/login.page');
-const CartPage = require('../pages/cart.page');
+const CartPage = require('../pages/cart.page')
 
 describe('shop.QaFastFood tests', function () {
     let driver;
@@ -18,7 +18,12 @@ describe('shop.QaFastFood tests', function () {
 
     const packToAdd = 'Double burger';
     const sideDishesName = 'Mozzarella sticks';
-    const packageQuantity = '1';
+    const packageQuantity = '2';
+
+    const packToAddB = 'Heart attack';
+    const sideDishesNameB = 'Onion rings';
+    const packageQuantityB = '4';
+
 
     before(function () {
         driver = new webdriver.Builder().forBrowser('chrome').build();
@@ -48,10 +53,12 @@ describe('shop.QaFastFood tests', function () {
     });
 
     it('Preform an registration', async function () {
-        await pageRegisterPage.fillFirstnameInput('Djordje3x1v1111121');
-        await pageRegisterPage.fillLastnameInput('Djordjin1ox11v131121');
-        await pageRegisterPage.fillEmailInput('djordje.djordev11icxv1131211@gmail.com')
-        await pageRegisterPage.fillUsername('ludxx111113');
+        const randomNumber = pageCartPage.random(10000, 100000000);
+
+        await pageRegisterPage.fillFirstnameInput(`Bojan${randomNumber}`);
+        await pageRegisterPage.fillLastnameInput(`Hagelkris${randomNumber}`);
+        await pageRegisterPage.fillEmailInput(`siberdex${randomNumber}@hotmail.com`)
+        await pageRegisterPage.fillUsername(`BojanHGK92.${randomNumber}`);
         await pageRegisterPage.fillPassword('password12');
         await pageRegisterPage.fillPasswordConfirm('password12');
 
@@ -63,26 +70,27 @@ describe('shop.QaFastFood tests', function () {
         await pageLoginPage.getPageUrl();
         expect(await pageLoginPage.isLoginHeaderDispalyed()).to.be.true;
 
-        await pageLoginPage.fillUsernameLoginInput('ludxx111113');
+        await pageLoginPage.fillUsernameLoginInput('BojanHGK92');
         await pageLoginPage.fillPasswordLoginInput('password12');
         await pageLoginPage.clickOnLoginButton();
 
         expect(await pageHomePage.welcomeBackMessage()).to.contain('Welcome back');
-
     });
 
-    it('Order Item(s) to cart', async function() {
+    it('Empty Cart', async function() {
+        await pageCartPage.emptyCartAction();
+    });
+
+    it('Order Double Burger to cart', async function() {
+        // HardCoded!
+        await pageHomePage.insertQuantityInput();
 
         const packageDiv = await pageHomePage.getPackageDiv(packToAdd);
         const sideDishes = await pageHomePage.getSideDishDropdown(packageDiv);
         const options = await pageHomePage.getDishOptions(sideDishes);
 
-        // const quantity = await pageHomePage.getQuanitiyInput();
-        // quantity.click();
-        // quantity.sendKeys(Key.BACK_SPACE, '2');
-
-
         await Promise.all(options.map(async function (option) {
+
             const text = await option.getText();
 
             if (text === sideDishesName) {
@@ -96,20 +104,54 @@ describe('shop.QaFastFood tests', function () {
                 }
         }))
     });
+
     it('Opens shopping cart', async function() {
         await pageHomePage.clickOnShoppingCartLink();
 
         expect(await pageCartPage.getCurrentUrl()).to.be.equal('http://test.qa.rs/cart')
         expect(await pageCartPage.getPageHeaderTitle()).to.contain('Order')
     });
-    it('Verifies items are in cart',async function() {
+
+    it('Verifies Double Burger are in cart',async function() {
         const orderRow = await pageCartPage.getOrderRow(packToAdd.toUpperCase());
         const orderQuantity = await pageCartPage.getOrderQuantity(orderRow);
 
         expect(await orderQuantity.getText()).to.eq(packageQuantity);
-    })
+    });
+
+    it('Make another order to cart (Heart Attack)', async function() {
+        await pageCartPage.clickOnContinueShoppingBtn();
+        expect(await pageHomePage.getPageTitle()).to.contain('QA FastFood');
+
+        // HardCoded!
+        await pageHomePage.insertQuantityInputB();
+        await pageHomePage.checkCutleryBox();
+
+        const packageDivB = await pageHomePage.getPackageDiv(packToAddB);
+        const sideDishesB = await pageHomePage.getSideDishDropdown(packageDivB);
+        const optionsB = await pageHomePage.getDishOptions(sideDishesB);
+
+        await Promise.all(optionsB.map(async function (optionB) {
+                const text = await optionB.getText();
+
+                if (text === sideDishesNameB) {
+                    await optionB.click();
+
+                    const selectedValue = await sideDishesB.getText();
+                    expect(selectedValue).to.contain(sideDishesNameB);
+
+                    await pageHomePage.getOrderButton(packageDivB).click();
+                    expect(await driver.getCurrentUrl()).to.contain('http://test.qa.rs/order');
+                }
+            })
+        )
+    });
+    it('Verifies Heart Attack is in cart',async function() {
+        const orderRow = await pageCartPage.getOrderRowB(packToAddB.toUpperCase());
+        const orderQuantity = await pageCartPage.getOrderQuantityB(orderRow);
+
+        expect(await orderQuantity.getText()).to.eq(packageQuantityB);
+    });
 
 
-
-
-})
+});
