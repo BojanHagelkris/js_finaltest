@@ -8,6 +8,7 @@ const HomePage = require('../pages/home.page');
 const RegisterPage = require('../pages/register.page');
 const LoginPage = require('../pages/login.page');
 const CartPage = require('../pages/cart.page')
+const CheckoutPage = require('../pages/checkout.page')
 
 describe('shop.QaFastFood tests', function () {
     let driver;
@@ -15,6 +16,7 @@ describe('shop.QaFastFood tests', function () {
     let pageRegisterPage;
     let pageLoginPage;
     let pageCartPage;
+    let pageCheckoutPage;
 
     const packToAdd = 'Double burger';
     const sideDishesName = 'Mozzarella sticks';
@@ -31,10 +33,11 @@ describe('shop.QaFastFood tests', function () {
         pageRegisterPage = new RegisterPage(driver);
         pageLoginPage = new LoginPage(driver);
         pageCartPage = new CartPage(driver);
+        pageCheckoutPage = new CheckoutPage(driver);
     });
 
     after( async function () {
-        // await driver.quit()
+        await driver.quit()
     });
 
     it('opens QaFastFood website', async function () {
@@ -152,6 +155,59 @@ describe('shop.QaFastFood tests', function () {
 
         expect(await orderQuantity.getText()).to.eq(packageQuantityB);
     });
+    it('Verifies item(s) price is correct' ,async function() {
+        const orderRow = await pageCartPage.getOrderRow(packToAdd.toUpperCase());
+        const orderQuantity = await pageCartPage.getOrderQuantity(orderRow);
+        const itemPrice = await pageCartPage.getItemPrice(orderRow);
+        const totalItemPrice = await pageCartPage.getTotaliPrice(orderRow);
+
+        const quantity = Number(await orderQuantity.getText())
+        const price = Number((await itemPrice.getText()).substring(1));
+        const total = Number((await totalItemPrice.getText()).substring(1));
+
+        const calculatedItemPriceTotal = quantity * price;
+        expect(calculatedItemPriceTotal).to.be.equal(total);
+
+        // 2nd item:
+        const orderRowB = await pageCartPage.getOrderRowB(packToAddB.toUpperCase());
+        const orderQuantityB = await pageCartPage.getOrderQuantityB(orderRowB);
+        const itemPriceB = await pageCartPage.getItemPrice(orderRowB);
+        const totalItemPriceB = await pageCartPage.getTotaliPrice(orderRowB);
+
+        const quantityB = Number(await orderQuantityB.getText())
+        const priceB = await itemPriceB.getText();
+        // CHATGBT HELP :D
+        const [basePriceStr , additionalFeeStr] = priceB.split(' + ');
+        const basePrice = Number(basePriceStr.substring(1));
+        const additionalFee = Number(additionalFeeStr.substring(1));
+        const baseAndAdditional = basePrice + additionalFee;
+
+        const totalB = Number((await totalItemPriceB.getText()).substring(1));
+
+        const calculatedItemPriceTotalB = quantityB * baseAndAdditional;
+        expect(calculatedItemPriceTotalB).to.be.equal(totalB);
+    });
+    it('Verifies that item prices match Total price to pay', async function() {
+        const orderRow = await pageCartPage.getOrderRow(packToAdd.toUpperCase());
+        const totalItemPrice = await pageCartPage.getTotaliPrice(orderRow);
+        const total = Number((await totalItemPrice.getText()).substring(1));
+
+        const orderRowB = await pageCartPage.getOrderRowB(packToAddB.toUpperCase());
+        const totalItemPriceB = await pageCartPage.getTotaliPrice(orderRowB);
+        const totalB = Number((await totalItemPriceB.getText()).substring(1));
+
+        const totalPrice = await pageCartPage.totalPrice()
+        const praviTotal = Number((await totalPrice.getText()).replace(/[^\d.-]/g, ""))
+
+        const calculateAllPrices = total + totalB;
+        expect(calculateAllPrices).to.be.equal(praviTotal);
+    });
+    it('Preforms checkout and Verifies items are ordered', async function() {
+        await pageCartPage.clickOnCheckoutBtn();
+
+        expect(await pageCheckoutPage.getCheckoutPageTitle()).to.contain('You have successfully placed your order.')
+        expect(await pageCheckoutPage.getCheckoutPageSubtitle()).to.contain(`Your credit card has been charged with the amount of`);
+    })
 
 
 });

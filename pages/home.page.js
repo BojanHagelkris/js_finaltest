@@ -57,6 +57,7 @@ module.exports = class HomePage {
 
     async insertQuantityInput() {
         const quantityInput = await this.#driver.findElement(By.xpath('(//input[contains(@name, "quantity")])[2]'));
+        // Xpath koji nije "Harcoded": `h3[contains(text(), "{title}")]//ancestor::div[contains(@class, "panel")]//p//input[@name ="quantity"]`
         await quantityInput.click();
         await quantityInput.sendKeys(Key.UP,);
     }

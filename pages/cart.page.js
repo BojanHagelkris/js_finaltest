@@ -22,6 +22,12 @@ module.exports = class CartPage {
     getOrderQuantity(orderRow) {
         return orderRow.findElement(By.xpath('td[2]'));
     }
+    getItemPrice(orderRow) {
+        return orderRow.findElement(By.xpath('td[3]'));
+    }
+    getTotaliPrice(orderRow) {
+        return orderRow.findElement(By.xpath('td[4]'));
+    }
 
     getOrderRowB(packageName) {
         const xpathOrderRow = `//td[contains(., "${packageName}")]/parent::tr`;
@@ -30,6 +36,7 @@ module.exports = class CartPage {
     getOrderQuantityB(orderRow) {
         return orderRow.findElement(By.xpath('td[2]'));
     }
+
     emptyCartAction() {
         this.#driver.get('http://test.qa.rs/cart/clear/358');
     }
@@ -40,6 +47,17 @@ module.exports = class CartPage {
 
     random(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    totalPrice() {
+        return this.#driver.findElement(By.xpath('//tr[contains(., "Total:")]//td'));
+    }
+    getCheckoutBtn() {
+        return this.#driver.findElement(By.name('checkout'));
+    }
+
+    async clickOnCheckoutBtn() {
+        await (await this.getCheckoutBtn()).click();
     }
 
 }
